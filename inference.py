@@ -28,7 +28,7 @@ if __name__=="__main__":
         sess.run(tf.global_variables_initializer())
 
         ##load checkpoints
-        checkpoints_dir = "log/model.ckpt-127668"
+        checkpoints_dir = "experiments/1/model/model.ckpt-127668"
         saver = tf.train.Saver()
         saver.restore(sess,checkpoints_dir)
 
@@ -39,7 +39,7 @@ if __name__=="__main__":
         with open(imagelist_dir) as f:
             imagelist = [i.strip() for i in f]
 
-        skip = 20
+        skip = 2
         imagelist = [v for i, v in enumerate(imagelist) if i % skip == 0]
 
         for name in imagelist:

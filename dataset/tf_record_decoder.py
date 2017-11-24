@@ -1,13 +1,14 @@
 import tensorflow as tf
 from PIL import Image
 import numpy as np
-import cv2
+#import cv2
 slim = tf.contrib.slim
 
 
 ## Real : NUM_SAMPLES = 11079
-#NUM_SAMPLES = 11079 ##for training
-NUM_SAMPLES = 1151
+#NUM_SAMPLES = 11079 ##for training with all object image
+NUM_SAMPLES = 9291  ##for training with only person image
+#NUM_SAMPLES = 1151 ## for test
 NUM_CLASSES = 2
 LABEL_TO_NAME = {0:"none",1:"person"}
 
@@ -112,8 +113,8 @@ def test_batch_decoder(tf_record_dir):
         coord.join(threads)
     imgs = np.asarray(img_res)
     labels = np.asarray(label_res)
-    cv2.imshow("s",imgs[0,...])
-    cv2.waitKey(0)
+    # cv2.imshow("s",imgs[0,...])
+    # cv2.waitKey(0)
     print imgs.shape
     print labels.shape
 

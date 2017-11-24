@@ -2,14 +2,14 @@ import tensorflow as tf
 from dataset.tf_record_decoder import get_dataset, NUM_SAMPLES
 from util.multibox_parameters import ssd_300_multibox_parameters
 from util.Anchors import multibox_anchors
-from preprocessing.preprocessing_infer import preprocessing_fn
+from preprocessing.preprocessing_train import preprocessing_fn
 from util.Bboxes import tf_bboxes_encode
 from util.tf_util import reshape_list
 from nets.ssd_net import ssd_net as SN
 from nets.ssd_net import ssd_arg_scope,ssd_loss
 import numpy as np
 slim = tf.contrib.slim
-import cv2
+#import cv2
 
 
 
@@ -40,8 +40,8 @@ def main(dataset_dir, log_dir, batch_size, lr_init=0.001,lr_decay_epoch=5,lr_dec
         img_shape = params.img_shape
 
         # ###preprocessing ###
-        # ###TODO + preprocessing_train (flip, crop, etc.)
-        image = preprocessing_fn(image, img_shape)
+        # ### distort shape, color, random flip, resize
+        image,labels,bboxes = preprocessing_fn(image,labels,bboxes,img_shape)
         #
         # ###TODO encode labels and bboxes based on anchors
         anchors = multibox_anchors(img_shape)
@@ -86,7 +86,7 @@ def main(dataset_dir, log_dir, batch_size, lr_init=0.001,lr_decay_epoch=5,lr_dec
         config = tf.ConfigProto(log_device_placement=False,
                                 gpu_options=gpu_options)
 
-        slim.learning.train(train_op,log_dir,save_summaries_secs=60,global_step = global_step,session_config=config,number_of_steps=130000,init_fn=get_init_fn())
+        slim.learning.train(train_op,log_dir,save_summaries_secs=60,global_step = global_step,session_config=config,number_of_steps=130000,init_fn=get_init_fn(train_dir=log_dir))
 
                 ########test###########
                 # width = 640
@@ -155,4 +155,4 @@ def get_init_fn(checkpoint_path = "checkpoints/vgg_16.ckpt",train_dir="log",
         variables_to_restore,
         ignore_missing_vars=ignore_missing_vars)
 if __name__ == "__main__":
-    main("TF_DATA/train01_valid_skip2.tf",'log',6)
+    main("TF_DATA/train01_valid_skip2.tf",'log/4',8)

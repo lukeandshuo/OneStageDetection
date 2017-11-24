@@ -575,6 +575,89 @@ def tf_bboxes_matching_batch(labels, scores, bboxes,
                       infer_shape=True)
         return n_gbboxes, tp_match, fp_match, scores
 
+def tf_bboxes_resize(bbox_ref, bboxes, name=None):
+    """Resize bounding boxes based on a reference bounding box,
+    assuming that the latter is [0, 0, 1, 1] after transform. Useful for
+    updating a collection of boxes after cropping an image.
+    """
+    # Bboxes is dictionary.
+    if isinstance(bboxes, dict):
+        with tf.name_scope(name, 'bboxes_resize_dict'):
+            d_bboxes = {}
+            for c in bboxes.keys():
+                d_bboxes[c] = tf_bboxes_resize(bbox_ref, bboxes[c])
+            return d_bboxes
+
+    # Tensors inputs.
+    with tf.name_scope(name, 'bboxes_resize'):
+        # Translate.
+        v = tf.stack([bbox_ref[0], bbox_ref[1], bbox_ref[0], bbox_ref[1]])
+        bboxes = bboxes - v
+        # Scale.
+        s = tf.stack([bbox_ref[2] - bbox_ref[0],
+                      bbox_ref[3] - bbox_ref[1],
+                      bbox_ref[2] - bbox_ref[0],
+                      bbox_ref[3] - bbox_ref[1]])
+        bboxes = bboxes / s
+        return bboxes
+
+
+def tf_bboxes_intersection(bbox_ref, bboxes, name=None):
+    """Compute relative intersection between a reference box and a
+    collection of bounding boxes. Namely, compute the quotient between
+    intersection area and box area.
+
+    Args:
+      bbox_ref: (N, 4) or (4,) Tensor with reference bounding box(es).
+      bboxes: (N, 4) Tensor, collection of bounding boxes.
+    Return:
+      (N,) Tensor with relative intersection.
+    """
+    with tf.name_scope(name, 'bboxes_intersection'):
+        # Should be more efficient to first transpose.
+        bboxes = tf.transpose(bboxes)
+        bbox_ref = tf.transpose(bbox_ref)
+        # Intersection bbox and volume.
+        int_ymin = tf.maximum(bboxes[0], bbox_ref[0])
+        int_xmin = tf.maximum(bboxes[1], bbox_ref[1])
+        int_ymax = tf.minimum(bboxes[2], bbox_ref[2])
+        int_xmax = tf.minimum(bboxes[3], bbox_ref[3])
+        h = tf.maximum(int_ymax - int_ymin, 0.)
+        w = tf.maximum(int_xmax - int_xmin, 0.)
+        # Volumes.
+        inter_vol = h * w
+        bboxes_vol = (bboxes[2] - bboxes[0]) * (bboxes[3] - bboxes[1])
+        scores = safe_divide(inter_vol, bboxes_vol, 'intersection')
+        return scores
+
+def tf_bboxes_filter_overlap(labels, bboxes,
+                          threshold=0.5, assign_negative=False,
+                          scope=None):
+    """Filter out bounding boxes based on (relative )overlap with reference
+    box [0, 0, 1, 1].  Remove completely bounding boxes, or assign negative
+    labels to the one outside (useful for latter processing...).
+
+    Return:
+      labels, bboxes: Filtered (or newly assigned) elements.
+    """
+    with tf.name_scope(scope, 'bboxes_filter', [labels, bboxes]):
+        scores = tf_bboxes_intersection(tf.constant([0, 0, 1, 1], bboxes.dtype),
+                                     bboxes)
+        mask = scores > threshold
+        if assign_negative:
+            labels = tf.where(mask, labels, -labels)
+            # bboxes = tf.where(mask, bboxes, bboxes)
+        else:
+            labels = tf.boolean_mask(labels, mask)
+            bboxes = tf.boolean_mask(bboxes, mask)
+        return labels, bboxes
+
+
+############################
+### Numpy implementation
+############################
+
+
 
 def bboxes_select(classifications,
                       localizations,

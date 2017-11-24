@@ -14,7 +14,7 @@ slim = tf.contrib.slim
 tf.logging.set_verbosity(tf.logging.DEBUG)
 
 
-def main(dataset_dir = "TF_DATA/test01_valid_skip20.tf",checkpoint_path ="experiments/1/model/model.ckpt-127668",eval_dir= "log/eval",batch_size = 6,has_difficult = False):
+def main(dataset_dir = "TF_DATA/test01_valid_skip20.tf",checkpoint_path ="log/2/model.ckpt-26041",eval_dir= "log/eval",batch_size = 6,has_difficult = True):
 
     with tf.Graph().as_default():
         tf_global_step = slim.get_or_create_global_step()

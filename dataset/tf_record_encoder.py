@@ -13,7 +13,7 @@ ANNOTATION_NAME ="annotations"
 
 LABEL_MAP = {"person":1,
              "people":2,
-             "cyclist":2,
+             "cyclist":1,
              "person?":2
              }
 def _difficult_condition(line):
@@ -131,4 +131,4 @@ def encoding(imagelist_dir, output_dir="../KAIST", stage = "train", img_type = "
 
 if __name__ == "__main__":
 
-    encoding("../KAIST/imageSets/test01_valid.txt","../TF_DATA",shuffling=True,skip=20)
+    encoding("../KAIST/imageSets/train01_valid_only_person.txt","../TF_DATA",shuffling=True,skip=2)
