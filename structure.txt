@@ -1,0 +1,34 @@
+#1 The objective is to construct a pipeline that can run inference by reading checkpoints
+
+	*Preprocessing
+	  1, whiten the image
+	  2, Resize the image
+	  3, transpose image channels if necessary (no need for now)
+	  4, expand to 4D dimension
+
+	*SSD network
+	  1, original VGG
+	  2, extra layers (includes pad2d)
+	  3, multibox layer 
+		$ two head conv, one for location, the other for classification
+		$ 3*3 convolution, the output channels: number of anchors * 4 for location, number of anchors * classes for
+		  classification
+	  	$ two output tensor. (1,H,W,num_anchors,4) for location, (1,H,W,num_anchors,num_classes)
+   
+	*Postprocessing
+	  1, generate anchors by different level of shapes. Because the outputs from SSD model is the relative values.
+	  2, combine bboxes from different branches, and get scores and classes by thresholding the predictions
+	  3, clip the bboxes in oder to preventing out of bounds
+	  4, sorting bboxes according their scores and do non-maxium surpression
+
+
+	Done
+
+#2 The objective is to construct a training pipeline which can finetuned on ImageNet
+
+	# Encode dataset to tf records
+		(need to define how many images are encoded into one tf_record file)
+		1, decode the images and annotations
+		2, encode the images and annotations into tf_records example
+
+
